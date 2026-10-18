@@ -27,7 +27,7 @@ The annoying part was keeping the labels legible around a dense symbol. I moved 
 
 # September 30: Organizing connectors and signals
 
-![JST connector section](<Screenshots/JST conn.png>)
+![JST connector section](Screenshots/JST%20conn.png)
 
 I worked through the connector side of the design and checked the labels for the external connections. I compared the JST connector section with the board’s front and back component views to get a sense of whether the schematic organization would make the physical connections understandable.
 
@@ -70,7 +70,7 @@ I did not catch the ordering-part mismatch in this pass: the BOM names `W25Q256J
 
 # October 4: Drawing the 9 V regulator
 
-![9 V regulator schematic](<Screenshots/BEC 9v.png>)
+![9 V regulator schematic](Screenshots/BEC%209v.png)
 
 I worked through the 9 V power block around the MP9943GQ-Z, following the input, switching components, feedback, and output nets shown in the schematic. I also checked the rail labels and surrounding capacitors so the section reads like a complete circuit rather than just a regulator symbol dropped onto a page.
 
@@ -80,7 +80,7 @@ The schematic labels this as a 9 V rail with a stated current rating. That ratin
 
 # October 5: Drawing the 5 V regulator
 
-![5 V regulator schematic](<Screenshots/BEC 5v.png>)
+![5 V regulator schematic](Screenshots/BEC%205v.png)
 
 I reviewed the separate 5 V regulator section, also based on an MP9943GQ-Z. I followed its feedback and output path and checked that it remained separate from the 9 V rail. The two blocks look similar, which makes it extra easy to mentally copy a connection and miss a difference.
 
@@ -90,8 +90,8 @@ This pass moved quicker because I knew what to inspect from the previous power s
 
 # October 6: Checking the 3.3 V rails
 
-![Digital 3.3 V rail](<Screenshots/3v3.png>)
-![Analog 3.3 V rail](<Screenshots/3v3 Analog.png>)
+![Digital 3.3 V rail](Screenshots/3v3.png)
+![Analog 3.3 V rail](Screenshots/3v3%20Analog.png)
 
 I reviewed the digital and analog 3.3 V sections together. The design uses an AP7361C for one rail and an NCP167-family part for the analog side. I followed the supply nets and looked over the filtering and decoupling around both sections.
 
@@ -124,7 +124,7 @@ This adds flexibility, but it also adds another chip and another firmware story 
 
 ![Analog OSD circuit](Screenshots/OSD.png)
 ![Buzzer circuit](Screenshots/Buzzer.png)
-![Status LED circuit](Screenshots/Status LEDs.png)
+![Status LED circuit](Screenshots/Status%20LEDs.png)
 
 I reviewed the AT7456E OSD section, buzzer, and status LEDs. The OSD circuitry is analog, so I checked that wording in the project docs too. I wanted the small support blocks visible alongside the MCU and sensor work, since these are easy to overlook until there’s suddenly no usable status indicator or OSD connection.
 
@@ -167,7 +167,7 @@ I also looked at the back-side silkscreen view to see whether the labels were le
 # October 13: Routing cleanup and connector review
 
 ![Front-side silkscreen](Screenshots/front.silkscreen.png)
-![External LED connections](<Screenshots/External LEDs.png>)
+![External LED connections](Screenshots/External%20LEDs.png)
 
 I reviewed the front silkscreen and the external LED connections while cleaning up the board view. I looked for labels that might be hard to read and checked that the LED header was represented as part of the design, not as a feature I’d already tested.
 
@@ -177,13 +177,13 @@ The project includes fabrication exports, but I don’t have a final DRC report 
 
 # October 14: Comparing the BOM and saved cart
 
-![Saved component cart screenshot](<cart/Screenshot 2026-10-18 132400.png>)
+![Saved component cart screenshot](cart/Screenshot%202026-10-18%20132400.png)
 
 I compared the component list with the saved cart view and checked the U7 flash part against the schematic and PCB. The BOM says `W25Q256JVEIQ`; the design files say `W25N04KVZEIR`. Those are different devices, so I stopped short of treating the cart as an order list.
 
 It’s frustrating to find a mismatch after other design work, but much better here than after a package arrives. The part needs to be resolved, the BOM regenerated, and the updated cart checked before anyone buys components. These screenshots show saved cart contents, not a completed purchase.
 
-![Second saved component cart screenshot](<cart/Screenshot 2026-10-18 132445.png>)
+![Second saved component cart screenshot](cart/Screenshot%202026-10-18%20132445.png)
 
 **Total time spent: 2 hours**
 
@@ -200,9 +200,9 @@ These files are useful handoff material, but their presence doesn’t mean the p
 
 # October 16: Looking over the power and connector details
 
-![9 V regulator section](<Screenshots/BEC 9v.png>)
-![5 V regulator section](<Screenshots/BEC 5v.png>)
-![JST connector section](<Screenshots/JST conn.png>)
+![9 V regulator section](Screenshots/BEC%209v.png)
+![5 V regulator section](Screenshots/BEC%205v.png)
+![JST connector section](Screenshots/JST%20conn.png)
 
 I did a focused pass over the power blocks and connector sections again, following the labels between the design sheets and the board. I was looking for anything that would make the supply and external connections hard to understand before manufacturing.
 
