@@ -2,236 +2,131 @@
 title: "MagnumFC"
 author: "Poojitha S"
 description: "Design notes for a compact STM32F722 flight controller"
-created_at: "2026-09-28"
+created_at: "2026-09-25"
 ---
 
-# September 28: Getting oriented and gathering design references
+# September 26: Getting oriented and gathering design references
 
-![MCU schematic block in the project](Screenshots/MCU.png)
+Okay, let's do this one more time,
+My name is Poojitha S,
+I'm born and brought up in India. What's this project about ? Well its a custom Flight Controller that I have been ummm... wanting to make ? ig idk
 
-I started by getting clear on the board I wanted to make: a compact STM32F722 flight controller with an IMU, barometer, storage, USB-C, regulators, and the extra ESP32-C3 block. I gathered the project’s part symbols, footprints, and 3D models and checked the MCU section so I had a real pinout to work from. Research itself wasn’t hours of reading datasheets cover to cover; the time estimate includes finding and sorting the design files too.
+Okay.. Okay.. but what am I gonna do with a flight controller ? wirelessly connect to Air Force One and .... idk.. nah i'm just kidding, seriously...
 
-My main goal was to avoid picking parts as a vibe and then discovering they couldn’t connect sensibly. I made a short list of the interfaces I’d need to account for. Lowkey, that list got big fast.
+Well this is for building an opensource long range drone. For now I'm going with a small 3" to 5" fpv drone, later on advancing to fixed wings followed by v-tols (I'm a fan of the Osprey btw)
+
+Also one more thing to note:
+I'm writing these entries after doing the work, not live. I also only joined the program last week or so, and I didn't know about lapse (the session recordings) until I got informed during a review on one of my projects.. so unfortunately I don't have lapse recordings for these first sessions. I take oath to write down my hours religiously and honestly.
+
+Starting off with the project, on 26th September 2026 I started by going through journals and GUIDEs of various projects...
+
+- Simple Flight Controller - by NotARoomba
+- MerlynFPV - by Anson ig
+- Few other projects on OSHWLAB, they seemed pretty advanced tho !
+
+So for my layout and design, I am going with the SpeedyBee F7 V3, I'll be designing around this layout / framework...
+I jotted down the list of components I need for my FC, i mean they are kinda pre-default right....
+
+| Component or section | Intended role |
+| --- | --- |
+| STM32F722RETx | Main flight-controller MCU |
+| ICM-42688-P | SPI gyroscope and accelerometer |
+| BMP388 | Barometer |
+| ESP32-C3 | Wireless-connectivity coprocessor |
+| W25N04KVZEIR | NAND flash shown in the schematic and PCB; confirm device support before enabling it in firmware |
+| MP9943GQ-Z × 2 | Switching 9 V and 5 V rails |
+| AP7361C and NCP167 | Separate digital and analog 3.3 V rails, as represented in the design |
+| AT7456E | Analog OSD circuitry |
+| USB-C | USB connection to the flight controller |
+
+Layout: 30.5 mm x 30.5 mm is the standard **mounting hole spacing** for a stack, 6 layers, 1oz outer and 0.5oz inner.
 
 **Total time spent: 1 hour 20 minutes**
 
-# September 29: Drawing the MCU section
+# September 27 (morning): Getting started with project files
 
-![STM32F722 section](Screenshots/MCU.png)
+So first thing I did in the morning was get my setup right before school/college eats my day.. basically got my folders and sub folders ready which took around 5 mins, followed by downloading the datasheets and feeding them to ChatGPT... and also converting all the easyeda files to kicad using some easyeda-to-kicad python program. This took ridiculous time, around half an hour of downloading and converting and repeating..
 
-I laid out the STM32F722RETx block in KiCad, arranging power, reset, clock, and BOOT0 connections before grouping the signal labels around the chip. I checked pin numbers while adding the SPI, UART, USB, and motor nets so the page would be readable and the intended connections were visible.
+![File-Explorer](https://cdn.hackclub.com/01a1549b-89ef-7318-b7c1-900d4d065878/paste-1792420841194.png)
 
-The annoying part was keeping the labels legible around a dense symbol. I moved them around a few times and checked the pin assignments again instead of trusting the first placement. This is a drawn MCU circuit, not a programmed or powered MCU, and I’m keeping that distinction clear.
+Once that was done i had to leave for school... boring
 
-**Total time spent: 2 hours 30 minutes**
+**Total time spent: 45 minutes **
 
-# September 30: Organizing connectors and signals
+# September 27 (second half of the day): Drawing the MCU and OSD
 
-![JST connector section](Screenshots/JST%20conn.png)
+I started with the schematics for my FC... so first off I drew my MCU, using references from the projects I mentioned above. So I was constantly doing ctrl+tab editing, modifying, plus checking with ChatGPT, which had all the datasheets I'd fed it... once that was done:
 
-I worked through the connector side of the design and checked the labels for the external connections. I compared the JST connector section with the board’s front and back component views to get a sense of whether the schematic organization would make the physical connections understandable.
+![MCU](https://cdn.hackclub.com/01a153f7-127a-7f56-a914-0ede79f17bb0/paste-1792410062700.png)
 
-There are a lot of named signals in a flight controller, and a connector can look totally fine while still being easy to misread. I’m not calling every assignment verified yet; this pass was about making the design easier to follow before layout and later pin-map review.
+Next I drew the OSD. Its called the On Screen Display, and its important for Analog fpv pilots: it basically puts flight info (battery voltage and other telemetry data) right onto your goggles or monitor. Same process here... check already made designs, modify, ask ChatGPT for a sanity check, done.
 
-![Front-side component placement](Screenshots/components-front.png)
-![Back-side component placement](Screenshots/components-back.png)
+![OSD](https://cdn.hackclub.com/01a153f8-fc8f-7598-ae14-a7dcccbfd01c/paste-1792410188587.png)
 
-**Total time spent: 1 hour 30 minutes**
+Once the MCU and OSD were done I organised my play area, like the drawing area in KiCad, making it look neat and organised.. girl i hv OCD..
 
-# October 1: Drawing the IMU circuit
+**My own checks:** **I had to manually verified the Pins as it had multiple allocations it could be GPIO or SPI or I2C soo, plus ChatGPT got a couple things wrong so don't trust, AI is still not that well structured for Embedded engineering**
 
-![ICM-42688-P schematic section](Screenshots/IMU.png)
+**Total time spent: 2 hours 7 minutes **
 
-I worked on the ICM-42688-P section: supply, decoupling, SPI signals, chip select, and the interrupt connection. I traced the named nets back toward the STM32 and checked the symbol pins rather than assuming similar-looking signal names were interchangeable.
+# September 28: Power supply, part 1 (3V3 logic + USB-C done)
 
-The IMU is one of the parts I care about most on this board, so I slowed down here. The schematic tells me what I intend to connect; it cannot tell me the gyro’s real orientation on a finished board or whether it communicates. That part is still ahead. Tiny bit frustrating, but pretending otherwise would be worse.
+So this is one of the most important and critical parts of designing an FC. To run, the FC needs power / current, and it gets this either directly from the battery or via the ESC. In my case its from the ESC.
+I'll be using a 6S battery, which means 6 cells connected in series, 6S1P. A fully charged 6S is 25.2 V, so the converters have to handle that (plus spikes). **MP9943 max input voltage from the datasheet, 36V**
 
-**Total time spent: 2 hours 20 minutes**
+The FC powers the critical sensors and other plug-ins the drone needs, but if the power supply is unstable and can't meet the demand, you get brown-outs, which means the FC suddenly resets or freezes mid-air, kinda like Tony Stark's suit losing power while flying...
 
-# October 2: Adding the barometer
+Also the sensors are picky. Noise on the 3V3 supply shows up as noise in your IMU readings, and then your motors get twitchy and the drone doesn't fly smooth. So a clean steady 3V3 matters a lot.
 
-![BMP388 schematic section](Screenshots/Baro.png)
+So an FC has multiple buck converters that turn the battery's rough power into steady voltages:
 
-I added and reviewed the BMP388 block, following its I²C labels toward the MCU and checking the local supply and capacitor connections. Compared with the MCU page, this circuit is smaller, but I still checked that the signal labels landed on the nets I meant them to.
+- BEC 5V 2A
+- BEC 9V 2A (needed for the video transmitters, analog and digital)
+- Two separate 3V3 regulators, one digital and one analog (AP7361C and NCP167).
+- And finally a Type-C connector for configuring the firmware settings
 
-I also kept the sensor’s eventual placement in mind. A barometer has to sense pressure, so its location and exposure matter; the screenshot only shows the schematic side of that decision. No altitude readings exist yet.
+These are standardised designs from other projects, so the circuits are pretty self explanatory...
 
-**Total time spent: 1 hour 45 minutes**
+I split the power work across the 28th and 29th. On the 28th I finished the 3V3 logic and the Type-C connector. Fairly moderate in terms of understanding the logic and circuitry.
 
-# October 3: Adding the onboard flash circuit
+![3V3 Analog](https://cdn.hackclub.com/01a153f9-d3ac-7d03-b4c2-02141979858b/paste-1792410241957.png)
 
-![Flash circuit](Screenshots/Flash.png)
+![3V3](https://cdn.hackclub.com/01a153fa-17df-7539-b91c-25b3d9c6ef7f/paste-1792410261163.png)
 
-I worked on the onboard flash connection and its SPI and chip-select signals. The intended use is flight-log storage. I checked the flash symbol and its net labels against the MCU connections so the circuit was represented consistently.
+![USB C](https://cdn.hackclub.com/01a153fa-70eb-7b57-9c85-495cf29e8ea2/paste-1792410283695.png)
 
-I did not catch the ordering-part mismatch in this pass: the BOM names `W25Q256JVEIQ`, while the schematic and PCB identify `W25N04KVZEIR`. That is a real unresolved issue, not a tiny typo I can safely ignore. The part and firmware support need a deliberate decision before ordering or enabling flash.
+**Total time spent: 1 hour 38 minutes **
 
-**Total time spent: 2 hours**
+# September 29: Power supply, part 2 (5v + 9v logic, VBAT detection)
 
-# October 4: Drawing the 9 V regulator
+So today 29th of September, I started with a cup of coffee <3 and continued with the power supply, today my target was to finish with the power supply.
 
-![9 V regulator schematic](Screenshots/BEC%209v.png)
+Same as the previous journal, I went through a few project, asked GPT the most efficient work flow, and verified on reddit & discord, finalised the NETLIST and drew the 5v rated for 2A thats 10W, 9v rated 2A thats 18W. 
 
-I worked through the 9 V power block around the MP9943GQ-Z, following the input, switching components, feedback, and output nets shown in the schematic. I also checked the rail labels and surrounding capacitors so the section reads like a complete circuit rather than just a regulator symbol dropped onto a page.
+Also a VBAT sensors that messures the current coming from the power source i.e. the ESC.
 
-The schematic labels this as a 9 V rail with a stated current rating. That rating is a design claim to validate, not a measured result. I still need calculations and a safe load test on actual hardware before saying how it behaves. Power sections deserve a little extra respect; they can get spicy in a very non-fun way.
+![5V 2A](https://cdn.hackclub.com/01a1541a-b992-7a89-8c62-d86579edd205/paste-1792412399228.png)
 
-**Total time spent: 2 hours 20 minutes**
 
-# October 5: Drawing the 5 V regulator
+![9V 2A](https://cdn.hackclub.com/01a1541b-2309-7560-b005-6fe94cb68036/paste-1792412426298.png)
 
-![5 V regulator schematic](Screenshots/BEC%205v.png)
+![VBAT](https://cdn.hackclub.com/01a1541b-833a-7bc4-9516-be01df21d902/paste-1792412451420.png)
 
-I reviewed the separate 5 V regulator section, also based on an MP9943GQ-Z. I followed its feedback and output path and checked that it remained separate from the 9 V rail. The two blocks look similar, which makes it extra easy to mentally copy a connection and miss a difference.
+**Total time spent: 1 hour 39 minutes **
 
-This pass moved quicker because I knew what to inspect from the previous power section. Still, the current rating is only what the design intends; it needs thermal and load validation on the built board.
+# September 30: IMU and Flash
 
-**Total time spent: 2 hours 10 minutes**
+After have done the Power supply, I started off with the sensors, these are core components for PID, and debugging ( via blackbox ).
 
-# October 6: Checking the 3.3 V rails
+So this part had to be done carefully and precisely, for the IMU i.e. the 6 DOF gyro thats is used for PID tunning, basic keeping the drone stable and less wobble or drunkard behaviour, and the flash basically stores the telemetry data.
 
-![Digital 3.3 V rail](Screenshots/3v3.png)
-![Analog 3.3 V rail](Screenshots/3v3%20Analog.png)
+For the IMU i choose the ICM-42688-P as its way more cleaner and less prone to vibrations than other IMU like MPU6500, or other ICM models...
+MPU6000 is considered as gold, as it has proven its performance and is most loved IMU amongst the fpv community. But since MPU6000 's discontinued ppl now prefer the ICM-42688-P.
 
-I reviewed the digital and analog 3.3 V sections together. The design uses an AP7361C for one rail and an NCP167-family part for the analog side. I followed the supply nets and looked over the filtering and decoupling around both sections.
+As for the Flash, theres only Winbond so yeaa.. you can chose the storage so depends on u
 
-Keeping the rails separate looks intentional on the schematic, but quiet analog power is something I need to measure, not just declare because the labels say “analog.” This is where the design starts to feel like a bunch of small decisions that all affect the same tiny board. Lowkey a lot to keep straight.
+Once I chose my components I went through the datasheet and make a note of the required components for it to work reliable and phrased it to GPT and got a NETLIST, and routed them on the schematic sheet, and verified them using the existing project schematics... looked fine, so continued the same with the flash.
 
-**Total time spent: 2 hours 15 minutes**
+![IMU](https://cdn.hackclub.com/01a15429-d49a-7d8d-ad57-1ef8a2b57677/paste-1792413388651.png)
 
-# October 7: Checking USB-C and battery sensing
-
-![USB-C circuit](Screenshots/Type-C.png)
-![Battery-voltage sensing circuit](Screenshots/VBAT.png)
-
-I reviewed the USB-C connection, including the data lines, CC resistors, and protection shown in the schematic. I also checked the battery-voltage sensing section and followed its signal toward the MCU. Both sections need to make sense electrically and be easy to identify later when firmware is configured.
-
-Connector orientation and divider scaling are the kind of details that can look settled in CAD but still need a careful final check. The design files show the circuits; they don’t show a successful USB connection or calibrated battery reading yet.
-
-**Total time spent: 2 hours 10 minutes**
-
-# October 8: Adding the ESP32-C3 section
-
-![ESP32-C3 schematic section](Screenshots/ESP32-C3.png)
-
-I worked on the ESP32-C3 block and its serial, enable, boot, and antenna-related connections. I checked how the signals tie back into the overall design and made sure the section was represented as a coprocessor idea, not as already-working wireless firmware.
-
-This adds flexibility, but it also adds another chip and another firmware story to figure out. The repository has the hardware design, not a wireless implementation or range test. I’m keeping that boundary clear even though it would be pretty cool to see it working.
-
-**Total time spent: 2 hours 15 minutes**
-
-# October 9: Reviewing OSD, buzzer, and status LEDs
-
-![Analog OSD circuit](Screenshots/OSD.png)
-![Buzzer circuit](Screenshots/Buzzer.png)
-![Status LED circuit](Screenshots/Status%20LEDs.png)
-
-I reviewed the AT7456E OSD section, buzzer, and status LEDs. The OSD circuitry is analog, so I checked that wording in the project docs too. I wanted the small support blocks visible alongside the MCU and sensor work, since these are easy to overlook until there’s suddenly no usable status indicator or OSD connection.
-
-I’m not claiming any of these outputs have been tested. They’re present in the design, and still need continuity checks, firmware support, and bench verification on actual hardware.
-
-**Total time spent: 2 hours**
-
-# October 10: Fitting the design into the board outline
-
-![PCB layout view](Screenshots/PCB.png)
-
-I moved into the PCB layout and worked on fitting the parts inside the 30 × 30 mm outline. Mounting holes and connectors set hard boundaries, while the MCU, sensors, regulators, and antenna all compete for room. I tried to place related circuits sensibly so routing would have a chance later.
-
-This was my “wait, this is actually tiny” moment. I stopped trying to make every part look perfectly symmetrical and focused on keeping useful groups together. The board file has six copper layers, which gives more routing options, but does not magically make placement easy.
-
-**Total time spent: 2 hours 30 minutes**
-
-# October 11: Routing around the MCU
-
-![Front render of the designed PCB](PCB/MagnumFC-front.png)
-
-I started routing through the dense MCU area and out toward the other blocks. I checked net names as I worked and used vias where a route needed to continue on another copper layer. The amount of connections in that area made it hard to see the whole picture at once, so I focused on one cluster at a time.
-
-The render helps me orient myself, but it isn’t evidence that every net is routed correctly or that design-rule checks pass. This was a routing pass, not a final sign-off. I’m trying to keep the confidence level honest.
-
-**Total time spent: 2 hours 40 minutes**
-
-# October 12: Routing the sensor and power areas
-
-![Back render of the designed PCB](PCB/MagnumFC-back.png)
-
-I continued routing between the sensor, power, and MCU sections, switching between the schematic and board to check net names and layer transitions. I paid attention to the IMU’s neighborhood while routing around the switching regulators, but I can’t claim low noise from a layout screenshot alone.
-
-I also looked at the back-side silkscreen view to see whether the labels were legible and oriented in a way that would help assembly. Having a separate pass for routing and readability made the work feel less like an endless ratsnest. Still a lot to verify, though.
-
-![Back-side silkscreen](Screenshots/back.silkscreen.png)
-
-**Total time spent: 2 hours 35 minutes**
-
-# October 13: Routing cleanup and connector review
-
-![Front-side silkscreen](Screenshots/front.silkscreen.png)
-![External LED connections](Screenshots/External%20LEDs.png)
-
-I reviewed the front silkscreen and the external LED connections while cleaning up the board view. I looked for labels that might be hard to read and checked that the LED header was represented as part of the design, not as a feature I’d already tested.
-
-The project includes fabrication exports, but I don’t have a final DRC report or a verified manufacturing acceptance result in these files. So I’m treating this as a visual and connectivity review pass, with formal checks still on the list.
-
-**Total time spent: 2 hours 25 minutes**
-
-# October 14: Comparing the BOM and saved cart
-
-![Saved component cart screenshot](cart/Screenshot%202026-10-18%20132400.png)
-
-I compared the component list with the saved cart view and checked the U7 flash part against the schematic and PCB. The BOM says `W25Q256JVEIQ`; the design files say `W25N04KVZEIR`. Those are different devices, so I stopped short of treating the cart as an order list.
-
-It’s frustrating to find a mismatch after other design work, but much better here than after a package arrives. The part needs to be resolved, the BOM regenerated, and the updated cart checked before anyone buys components. These screenshots show saved cart contents, not a completed purchase.
-
-![Second saved component cart screenshot](cart/Screenshot%202026-10-18%20132445.png)
-
-**Total time spent: 2 hours**
-
-# October 15: Reviewing the manufacturing views
-
-![Board component placement, front](Screenshots/components-front.png)
-![Board component placement, back](Screenshots/components-back.png)
-
-I checked the component placement views against the exported production files: BOM, positions, designators, IPC netlist, and the fabrication archive. I looked for orientation and labeling issues that could make assembly confusing.
-
-These files are useful handoff material, but their presence doesn’t mean the package passed a factory’s checks. The flash mismatch remains a blocker, so the exports need to be regenerated after that decision and then checked against the final board revision. Mildly annoying, very necessary.
-
-**Total time spent: 1 hour 50 minutes**
-
-# October 16: Looking over the power and connector details
-
-![9 V regulator section](Screenshots/BEC%209v.png)
-![5 V regulator section](Screenshots/BEC%205v.png)
-![JST connector section](Screenshots/JST%20conn.png)
-
-I did a focused pass over the power blocks and connector sections again, following the labels between the design sheets and the board. I was looking for anything that would make the supply and external connections hard to understand before manufacturing.
-
-This is a review of the CAD files, not a claim that the rails were measured or the connectors tested. I kept the remaining checks visible because “looks connected” isn’t the same as “safe to power.”
-
-**Total time spent: 2 hours**
-
-# October 18: Final file and feature consistency check
-
-![Barometer section](Screenshots/Baro.png)
-![Flash section](Screenshots/Flash.png)
-![IMU section](Screenshots/IMU.png)
-
-I cross-checked the feature descriptions against the schematic and board files, including the barometer, IMU, and flash. I made sure the docs describe the AT7456E as analog OSD and say plainly that the board is still at the design stage.
-
-The main open items are still real: resolve U7, verify pin assignments and the motor timer map, check the questionable UART direction, run final design and manufacturing checks, and then build and bench-test the board. It’s not the satisfying “everything is done” ending, but it’s honest—and honestly, that’s more useful than hype.
-
-![Battery-voltage sense circuit](Screenshots/VBAT.png)
-![USB-C circuit](Screenshots/Type-C.png)
-
-**Total time spent: 2 hours**
-
-# October 18: Drafting the Betaflight target and closing the journal
-
-![MCU pin and signal section](Screenshots/MCU.png)
-![Buzzer connection](Screenshots/Buzzer.png)
-
-I pulled the known pin assignments into an early Betaflight target draft under `firmware/configs/CUST/MAGNUMFC/config.h` and wrote down the blockers in `firmware/README.md`. I left motor outputs and onboard flash disabled rather than inventing a timer map or pretending the BOM mismatch was resolved.
-
-The target is not built or tested, and the board has not flown. That’s a little anticlimactic for a flight-controller project, but firmware can’t rescue an unverified pin map. The next meaningful step is to resolve the design issues, build the board, and validate it safely on the bench.
-
-**Total time spent: 2 hours 25 minutes**
+![Flash](https://cdn.hackclub.com/01a1542a-1b40-78ae-96fe-ad2bfecc9e3f/paste-1792413406218.png)
