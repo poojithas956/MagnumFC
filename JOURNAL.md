@@ -15,6 +15,8 @@ Okay.. Okay.. but what am I gonna do with a flight controller? Wirelessly connec
 
 Well, this is for building an open-source long-range drone. For now I'm going with a small 3" to 5" FPV drone, later advancing to fixed wings followed by VTOLs (I'm a fan of the Osprey btw)
 
+![image](https://cdn.hackclub.com/01a15b7f-e4bb-742f-8ce7-1bd672c80605/paste-1792536468387.png)
+
 Also, one more thing to note:
 I'm writing these entries after doing the work, not live. I also only joined the program last week or so, and I didn't know about lapse (the session recordings) until I got informed during a review on one of my projects.. so unfortunately I don't have lapse recordings for these first sessions. I take oath to write down my hours religiously and honestly.
 
