@@ -1,0 +1,5 @@
+# KiCad temporary lock files
+**/~*.lck
+
+# Windows Explorer metadata
+**/desktop.ini
