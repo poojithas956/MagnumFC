@@ -257,6 +257,8 @@ I followed the same approach for other components like the BEC, and finally got 
 
 I was done for the day! lowkey exhausteddd!!
 
+![no-img](https://cdn.hackclub.com/)
+
 **Total time spent: 3 hours 45 minutes**
 
 # October 12: Session 8, wiring the board...
